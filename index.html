@@ -1,8 +1,80 @@
 <!DOCTYPE HTML>
 <html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      a {
+        color: #555;
+        display: block;
+        margin: 10px 0 20px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        background-color: #ff5555;
+        color: white;
+        border-radius: 5px;
+        position: relative;
+      }
+
+      button:focus {
+        outline: none;
+      }
+
+      video {
+        display: none;
+        margin-top: 20px;
+        width: 80%;
+        max-width: 600px;
+      }
+    </style>
+    <script>
+      let hoverCount = 0;
+
+      function moveButton(event) {
+        if (hoverCount < 2) {
+          const button = event.target;
+          const randomX = Math.random() * 200 - 100;
+          const randomY = Math.random() * 200 - 100;
+
+          button.style.transform = `translate(${randomX}px, ${randomY}px)`;
+          hoverCount++;
+        }
+      }
+
+      function playVideo() {
+        const video = document.getElementById('playVideo');
+        video.style.display = 'block';
+        video.play();
+      }
+    </script>
+  </head>
   <body>
-  <h1>Why.</h1>
+    <h1>Why.</h1>
     <a>I told you not to click the page just leave, and do NOT click that button.</a>
-    <button>  DO NOT CLICK ME.    </button>
-</body>
+    <button onmouseover="moveButton(event)" onclick="playVideo()">DO NOT CLICK ME.</button>
+    <video id="playVideo" controls>
+      <source src="3763206.mov.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </body>
 </html>
