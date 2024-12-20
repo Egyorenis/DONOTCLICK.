@@ -49,6 +49,7 @@
     </style>
     <script>
       let hoverCount = 0;
+      let currentTime = 0;  // Variable to track current time of the video
 
       function moveButton(event) {
         if (hoverCount < 2) {
@@ -61,86 +62,65 @@
         }
       }
 
-      function openVideoInNewTab() {
-        // Save the current video time to localStorage
-        const savedTime = localStorage.getItem("videoTime") || 0;
-
-        // Open a new tab with the video
-        const newTab = window.open('', '_blank');
-
-        // Define the HTML content for the new tab
-        newTab.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                text-align: center;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                background-color: #f4f4f4;
-              }
-
-              video {
-                width: 80%;
-                max-width: 600px;
-              }
-            </style>
-            <script>
-              window.onload = function() {
-                const video = document.getElementById('playVideo');
-                video.currentTime = ${savedTime}; // Set the video time
-                video.play(); // Play the video automatically
-
-                // Fullscreen the video
-                triggerFullscreen();
-
-                // Save the video time on tab close
-                video.addEventListener('pause', function() {
-                  localStorage.setItem("videoTime", video.currentTime);
-                });
-
-                // When video ends, replay it
-                video.addEventListener('ended', function() {
-                  video.play();
-                });
-              };
-
-              function triggerFullscreen() {
-                const elem = document.documentElement;
-
-                if (elem.requestFullscreen) {
-                  elem.requestFullscreen();
-                } else if (elem.mozRequestFullScreen) { /* Firefox */
-                  elem.mozRequestFullScreen();
-                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                  elem.webkitRequestFullscreen();
-                } else if (elem.msRequestFullscreen) { /* IE/Edge */
-                  elem.msRequestFullscreen();
-                }
-
-                setTimeout(() => {
-                  if (!document.fullscreenElement) {
-                    triggerFullscreen();
-                  }
-                }, 1);
-              }
-            </script>
-          </head>
-          <body>
-            <video id="playVideo" controls>
-              <source src="3763206.mov.mp4" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          </body>
-          </html>
-        `);
+      function playVideo() {
+        const video = document.getElementById('playVideo');
+        video.style.display = 'block';
+        video.currentTime = currentTime;  // Set video to continue from last saved time
+        video.play();
+        triggerFullscreen();
+        preventTabClose();
       }
+
+      function triggerFullscreen() {
+        const elem = document.documentElement;
+
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { /* Firefox */
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+          elem.msRequestFullscreen();
+        }
+
+        setTimeout(() => {
+          if (!document.fullscreenElement) {
+            triggerFullscreen();
+          }
+        }, 1);
+      }
+
+      function preventTabClose() {
+        window.onbeforeunload = function () {
+          return "Are you sure you want to leave?";
+        };
+
+        const video = document.getElementById('playVideo');
+        video.addEventListener('ended', () => {
+          video.play();
+        });
+
+        video.addEventListener('pause', () => {
+          currentTime = video.currentTime;  // Save the current time when paused
+        });
+
+        video.addEventListener('ended', () => {
+          currentTime = 0;  // Reset time when the video ends
+          video.play();
+        });
+      }
+
+      // Function to duplicate the tab if the user tries to close it
+      window.onbeforeunload = function () {
+        setTimeout(() => {
+          const newWindow = window.open(location.href, '_blank');
+          newWindow.onload = function () {
+            newWindow.document.getElementById('playVideo').currentTime = currentTime;  // Keep playing from where it left off
+          };
+        }, 1000);
+        return "Are you sure you want to leave?";
+      };
 
       document.addEventListener('fullscreenchange', () => {
         if (!document.fullscreenElement) {
@@ -170,6 +150,10 @@
   <body>
     <h1>Why.</h1>
     <a>I told you not to click the page just leave, and do NOT click that button.</a>
-    <button onmouseover="moveButton(event)" onclick="openVideoInNewTab()">DO NOT CLICK ME.</button>
+    <button onmouseover="moveButton(event)" onclick="playVideo()">DO NOT CLICK ME.</button>
+    <video id="playVideo" controls>
+      <source src="3763206.mov.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
   </body>
 </html>
