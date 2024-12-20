@@ -61,65 +61,85 @@
         }
       }
 
-      function playVideo() {
-        const video = document.getElementById('playVideo');
-        video.style.display = 'block';
-        video.play();
-        triggerFullscreen();
-        preventTabClose();
-      }
+      function openVideoInNewTab() {
+        // Save the current video time to localStorage
+        const savedTime = localStorage.getItem("videoTime") || 0;
 
-      function triggerFullscreen() {
-        const elem = document.documentElement;
+        // Open a new tab with the video
+        const newTab = window.open('', '_blank');
 
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { /* Firefox */
-          elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-          elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE/Edge */
-          elem.msRequestFullscreen();
-        }
+        // Define the HTML content for the new tab
+        newTab.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: #f4f4f4;
+              }
 
-        setTimeout(() => {
-          if (!document.fullscreenElement) {
-            triggerFullscreen();
-          }
-        }, 1);
-      }
+              video {
+                width: 80%;
+                max-width: 600px;
+              }
+            </style>
+            <script>
+              window.onload = function() {
+                const video = document.getElementById('playVideo');
+                video.currentTime = ${savedTime}; // Set the video time
+                video.play(); // Play the video automatically
 
-      function preventTabClose() {
-        window.onbeforeunload = function () {
-          localStorage.setItem("videoTime", document.getElementById('playVideo').currentTime);
-          return "Are you sure you want to leave?";
-        };
+                // Fullscreen the video
+                triggerFullscreen();
 
-        const video = document.getElementById('playVideo');
-        video.addEventListener('ended', () => {
-          video.play();
-        });
-      }
+                // Save the video time on tab close
+                video.addEventListener('pause', function() {
+                  localStorage.setItem("videoTime", video.currentTime);
+                });
 
-      // Handle video state when the page is loaded
-      window.onload = function () {
-        const savedTime = localStorage.getItem("videoTime");
-        if (savedTime) {
-          const video = document.getElementById('playVideo');
-          video.currentTime = savedTime;
-        }
+                // When video ends, replay it
+                video.addEventListener('ended', function() {
+                  video.play();
+                });
+              };
 
-        // Detect when the tab is closed, duplicate the tab and remove the old one
-        window.addEventListener('beforeunload', () => {
-          if (!window.location.href.includes("newTab=true")) {
-            const videoUrl = window.location.href + "?newTab=true";
-            window.open(videoUrl, "_blank");
-          }
-        });
+              function triggerFullscreen() {
+                const elem = document.documentElement;
 
-        if (window.location.href.includes("newTab=true")) {
-          window.onbeforeunload = null; // Disable the beforeunload event for the duplicated tab
-        }
+                if (elem.requestFullscreen) {
+                  elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) { /* Firefox */
+                  elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                  elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                  elem.msRequestFullscreen();
+                }
+
+                setTimeout(() => {
+                  if (!document.fullscreenElement) {
+                    triggerFullscreen();
+                  }
+                }, 1);
+              }
+            </script>
+          </head>
+          <body>
+            <video id="playVideo" controls>
+              <source src="3763206.mov.mp4" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </body>
+          </html>
+        `);
       }
 
       document.addEventListener('fullscreenchange', () => {
@@ -150,10 +170,6 @@
   <body>
     <h1>Why.</h1>
     <a>I told you not to click the page just leave, and do NOT click that button.</a>
-    <button onmouseover="moveButton(event)" onclick="playVideo()">DO NOT CLICK ME.</button>
-    <video id="playVideo" controls>
-      <source src="3763206.mov.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+    <button onmouseover="moveButton(event)" onclick="openVideoInNewTab()">DO NOT CLICK ME.</button>
   </body>
 </html>
