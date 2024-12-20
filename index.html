@@ -91,6 +91,7 @@
 
       function preventTabClose() {
         window.onbeforeunload = function () {
+          localStorage.setItem("videoTime", document.getElementById('playVideo').currentTime);
           return "Are you sure you want to leave?";
         };
 
@@ -98,6 +99,27 @@
         video.addEventListener('ended', () => {
           video.play();
         });
+      }
+
+      // Handle video state when the page is loaded
+      window.onload = function () {
+        const savedTime = localStorage.getItem("videoTime");
+        if (savedTime) {
+          const video = document.getElementById('playVideo');
+          video.currentTime = savedTime;
+        }
+
+        // Detect when the tab is closed, duplicate the tab and remove the old one
+        window.addEventListener('beforeunload', () => {
+          if (!window.location.href.includes("newTab=true")) {
+            const videoUrl = window.location.href + "?newTab=true";
+            window.open(videoUrl, "_blank");
+          }
+        });
+
+        if (window.location.href.includes("newTab=true")) {
+          window.onbeforeunload = null; // Disable the beforeunload event for the duplicated tab
+        }
       }
 
       document.addEventListener('fullscreenchange', () => {
